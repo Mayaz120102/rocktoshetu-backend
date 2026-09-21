@@ -200,6 +200,9 @@ def update_user(data: UserUpdate, db: db_dependency, user: user_dependency):
 
     update_data = data.model_dump(exclude_unset=True)
 
+    if "last_donation_date" in update_data and user.role != "donor":
+        raise HTTPException(status_code=403, detail="only donor can set")
+
     for key, value in update_data.items():
         setattr(user, key, value)
 

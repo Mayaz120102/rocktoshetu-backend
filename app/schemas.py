@@ -40,6 +40,7 @@ class UserResponse(BaseModel):
     is_active: bool
     is_available: bool
     created_at: datetime
+    last_donation_date: date |None=None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -62,7 +63,15 @@ class UserUpdate(BaseModel):
     blood_group: Optional[Literal["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]] = (
         None
     )
+    last_donation_date : Optional[date]= None
 
+    @field_validator("last_donation_date")
+    @classmethod
+    def not_in_future(cls,v):
+        if v and v>date.today():
+            raise ValueError("last donation date cannot be in the future")
+
+        return v
 
 class UpdatePassword(BaseModel):
     current_password: str
