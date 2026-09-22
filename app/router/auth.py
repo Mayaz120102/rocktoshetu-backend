@@ -249,11 +249,19 @@ def forgot_password(password_request: ForgotPasswordRequest, db: db_dependency):
 
     user = db.query(Users).filter(Users.email == password_request.email).first()
 
-    if user and user.is_active:
-        token = create_reset_token(user.id)
-        print(f"password reset token {user.email}: {token}")
+    # if user and user.is_active:
+    #     token = create_reset_token(user.id)
+    #     print(f"password reset token {user.email}: {token}")
 
-    return {"message": "if the email exists , reset link has been sent"}
+    if user is None or not user.is_active:
+        raise HTTPException(status_code=404, detail="no active account found")
+
+    token = create_reset_token(user.id)
+
+    return {
+        "message": "Password reset token generated",
+        "token": token,
+    }
 
 
 @router.post("/reset-password")
