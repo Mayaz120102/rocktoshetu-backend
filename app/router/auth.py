@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Form
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
@@ -6,7 +6,7 @@ from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError
 
 from datetime import datetime, timedelta, timezone
-from typing import Annotated
+from typing import Annotated, Literal
 
 from app.config import settings
 from app.database import db_dependency
@@ -136,13 +136,26 @@ def create_user(db: db_dependency, new_user: UserCreate):
 
 @router.post("/login", response_model=TokenResponse)
 def user_login(
-    db: db_dependency, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+    db: db_dependency,
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    role: Literal[
+        "admin",
+        "donor",
+        "hospital",
+        "requester",
+    ]
+    | None = Form(None),
 ):
 
     user = authenticate_user(form_data.username, form_data.password, db)
 
     if not user:
-        raise HTTPException(status_code=401, detail="Authentication Failed")
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    if role is not None and user.role != role:
+        raise HTTPException(
+            status_code=403, detail="Selected role doesnot match this account"
+        )
 
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is disabled")
