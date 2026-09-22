@@ -228,13 +228,20 @@ def request_fullfill(request_id: int, db: db_dependency, user: user_dependency):
         .first()
     )
 
-    if stock is None or stock.units < blood_request.units:
+    if stock is None:
         raise HTTPException(status_code=400, detail="not enough stock")
 
-    stock.units -= blood_request.units
-    blood_request.status = "fulfilled"
+    if stock.units < blood_request.units:
+        raise HTTPException(status_code=400, detail="not enough stock")
 
-    db.commit()
-    db.refresh(blood_request)
+    try:
+        stock.units -= blood_request.units
+        blood_request.status = "fulfilled"
 
-    return blood_request
+        db.commit()
+        db.refresh(blood_request)
+
+        return blood_request
+    except Exception:
+        db.rollback()
+        raise
