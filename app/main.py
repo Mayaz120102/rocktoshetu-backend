@@ -55,4 +55,4 @@ app.include_router(requester.router)
 
 @app.get("/")
 def health():
-    return {"status": "ok"}
+    return "Welcome To RoktoShetu A Blood Connect App"
