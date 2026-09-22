@@ -124,6 +124,7 @@ class BloodRequestResponse(BaseModel):
 class BloodRequestUpdate(BaseModel):
     patient_name: str | None = Field(default=None, min_length=2, max_length=50)
     blood_group: Literal["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] | None = None
+    units: int | None = Field(default=None, ge=1, le=10)
     urgency: Literal["normal", "urgent", "critical"] | None = None
     hospital_name: str | None = Field(
         default=None,
